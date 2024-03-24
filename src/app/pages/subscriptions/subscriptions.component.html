@@ -1,0 +1,17 @@
+<div class=" w-full ">
+  <app-breadcrumb></app-breadcrumb>
+  <nz-row [nzGutter]="10">
+   <nz-col [nzSpan]="24">
+<div class=" mt-8 w-full relative border border-1 border-[#ccc] rounded-lg h-auto p-5 ">
+  <label for="payment" class=" absolute bg-[#fff] w-auto px-2 mx-2 right-1 z-10 top-[-10px]">حساب الطالب</label>
+     <nz-select [nzSize]="'large'" dir="rtl" (ngModelChange)="onSelect($event)" [ngModel]="selectedVal"  [nzAllowClear]="true" [nzShowSearch]="true" [nzDropdownStyle]="{'direction':'rtl'}" nzPlaceHolder="اختر اسم الطالب" class=" w-full">
+       @for (item of students_Name; track $index) {
+         <nz-option  [nzKey]="$index" [nzValue]="item._id" [nzLabel]="item.name"></nz-option>
+       }
+     </nz-select>
+
+
+    </div>
+  </nz-col>
+ </nz-row>
+</div>

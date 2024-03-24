@@ -1,0 +1,50 @@
+<div>
+  <app-breadcrumb></app-breadcrumb>
+  <div class="mt-10">
+    <div class="my-6">
+      <nz-range-picker [nzSize]="'large'" class=" rounded-xl" [nzAllowClear]="false" [nzInputReadOnly]="true" [(ngModel)]="date" (ngModelChange)="onChange($event)"></nz-range-picker>
+    </div>
+    <div >
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="24">
+          <nz-card class=" shadow-lg">
+            <nz-statistic
+              [nzValue]="totalAmount"
+              [nzTitle]="title"
+              [nzPrefix]="prefixTplOne"
+              [nzValueTemplate]="value"
+              [nzSuffix]="suffix"
+              [nzValueStyle]="{ display:'flex', 'align-items':'center','justify-content':'space-between','margin-block':'20px' }"
+            ></nz-statistic>
+            <ng-template #prefixTplOne>
+              @if (loadingData) {
+              <nz-skeleton  [nzActive]="true" [nzParagraph]="{rows:1}"  class=" !w-[200px]"></nz-skeleton>
+              }
+              @else {
+
+                <span class="">المرجو تحصيله : </span> <span class=" !text-[green]"> {{amountOfAllStudents}} </span> ج
+              }
+            </ng-template>
+            <ng-template #title><span class=" text-lg font-medium">اجمالي الدخل بالمقرأة</span></ng-template>
+            <ng-template #value>
+              @if (loadingData) {
+                <nz-skeleton  [nzActive]="true" [nzParagraph]="{rows:1}" class=" !w-[200px]"></nz-skeleton>
+                }
+                @else {
+              <span class=" w-full "> الذي تم تحصيله : <span class=" !text-[red]">{{totalAmount}}</span> ج</span>
+                }
+            </ng-template>
+            <ng-template #suffix>
+              @if (loadingData) {
+                <nz-skeleton  [nzActive]="true" [nzParagraph]="{rows:1}" class=" !w-[200px]"></nz-skeleton>
+                }
+                @else {
+              <span class=" text-xl font-medium text-[#ccc]">({{getPercent()}}) %</span>
+                }
+            </ng-template>
+          </nz-card>
+        </nz-col>
+      </nz-row>
+    </div>
+  </div>
+</div>

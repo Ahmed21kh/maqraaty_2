@@ -1,0 +1,321 @@
+<div class="registered_div">
+  <div>
+    <app-breadcrumb></app-breadcrumb>
+    <div class=" mt-8 w-full relative border border-1 border-[#ccc] rounded-lg h-auto p-5 ">
+      <label for="payment" class=" absolute bg-[#fff] w-auto px-2 mx-2 right-1 z-10 top-[-10px]">حساب الطالب</label>
+      @if (loadingData) {
+        <div nz-row class=" w-full ">
+          <div nz-col nzLg="3" nzMd="12">
+            <nz-skeleton-element nzType="image"  style="height: 100%;" [nzBlock]="true" [nzActive]="true"></nz-skeleton-element>
+          </div>
+          <div nz-col nzLg="12" nzMd="12">
+            <div class=" w-full flex flex-col gap-5 h-full">
+            <nz-skeleton [nzActive]="true" [nzParagraph]="{rows:2}"></nz-skeleton>
+            <!-- <nz-skeleton [nzActive]="true"></nz-skeleton>
+            <nz-skeleton [nzActive]="true"></nz-skeleton> -->
+
+            </div>
+          </div>
+        </div>
+      }@else {
+        <div nz-row nzGutter="24">
+          <div nz-col nzLg="3" nzMd="12">
+            @if (studentDetails.image !== '') {
+
+              <img
+                loading="lazy"
+                width="auto"
+                height="64"
+                style="border-radius: 15px; margin: auto"
+                [src]="url + '' + studentDetails.image"
+                alt="img"
+              />
+              }@else {
+              <img
+                loading="lazy"
+                width="auto"
+                height="64"
+                style="border-radius: 15px; margin: auto"
+                [src]="'assets/user.png'"
+                alt="img"
+              />
+              }
+          </div>
+          <div nz-col nzLg="12" nzMd="12">
+            <div class=" flex flex-col gap-5">
+              <div>
+                <span>الكود :</span>
+                <span class=" text-lg font-medium"> {{studentDetails.code}} </span>
+              </div>
+              <div>
+                <span>الاسم :</span>
+                <span class=" text-lg font-medium"> {{studentDetails.name}} </span>
+              </div>
+              <div>
+                <span>رقم الهاتف :</span>
+                <span class=" text-lg font-medium"> {{studentDetails.phone_1[0]}} </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="registered_table" >
+      <div style="margin-block: 20px;display:flex;align-items: center;justify-content: space-between;gap: 20px;">
+        <!-- <nz-date-picker [nzAllowClear]="false" [nzInputReadOnly]="true" [nzDefaultPickerValue]="defaultDate" [(ngModel)]="dateFilter" class=" w-1/5 rounded-xl" (ngModelChange)="onChange($event)"></nz-date-picker> -->
+
+       </div>
+      <ng-template #pagination>
+        <div class=" flex justify-between gap-2 items-center">
+          <div class=" flex gap-2 items-center">
+           <span>الاجمالي :</span>
+           <span class=" text-base font-medium">{{totalAmount?totalAmount:0}}</span>
+          </div>
+          <nz-pagination [nzPageIndex]="pageNumber" [nzPageSize]="pageSize" [nzTotal]="total" (nzPageIndexChange)="changePagination($event)"></nz-pagination>
+        </div>
+      </ng-template>
+      <ng-template #totalData>
+        <!-- <div style="border: 1px solid #000;width: 50px;height: 50px;position: absolute;">
+          {{total}}
+        </div> -->
+      </ng-template>
+      <nz-table
+        [nzScroll]="{ x: '1200px', y: '340px' }"
+        dir="rtl"
+        [nzPageSize]="pageSize"
+        #filterTable
+        [nzTotal]="total"
+        [nzShowTotal]="totalData"
+        nzPaginationPosition="bottom"
+        [nzFrontPagination]="false"
+        [nzShowPagination]="false"
+        [nzItemRender]="pagination"
+        [nzLoading]="loadingSearch||loadingData"
+        (nzPageIndexChange)="changePagination($event)"
+        [nzData]="listOfData"
+        nzTableLayout="fixed"
+        [nzFooter]="pagination"
+      >
+        <thead>
+          <tr>
+            @for (column of listOfColumns; track $index) {
+            <!-- <ng-template ngFor let-column [ngForOf]="listOfColumns"> -->
+            <th
+              style="text-align: center"
+              [nzSortOrder]="column.sortOrder"
+              [nzSortFn]="column.sortFn"
+              [nzSortDirections]="column.sortDirections"
+              [nzFilterMultiple]="column.filterMultiple"
+              [nzFilters]="column.listOfFilter"
+              [nzFilterFn]="column.filterFn"
+            >
+              {{ column.name }}
+            </th>
+
+            <!-- </ng-template> -->
+            }
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (data of filterTable.data; track $index) {
+          <!-- <ng-template ngFor let-data [ngForOf]="filterTable.data"> -->
+          <tr>
+            <td >{{ data.studentDetails.code }}</td>
+            <td >{{ data.studentDetails.name }}</td>
+            <td>
+              @if (data.studentDetails.image !== '') {
+
+              <img
+                loading="lazy"
+                width="64"
+                height="64"
+                style="border-radius: 50%; margin: auto"
+                [src]="url + '' + data.studentDetails.image"
+                alt="img"
+              />
+              }@else {
+              <img
+                loading="lazy"
+                width="64"
+                height="64"
+                style="border-radius: 50%; margin: auto"
+                [src]="'assets/user.png'"
+                alt="img"
+              />
+              }
+            </td>
+            <td>{{ data.date | date:'dd-MM-YYYY' }}</td>
+            <td>{{ data.amount }}<span class="leading-relaxed"> {{ "ج" }} </span></td>
+            <td>
+              <div style="display: flex; justify-content: space-around">
+
+                <!-- <button nz-button [nzType]="'primary'" class=" rounded-lg" (click)="showEditModal(data._id,data.student)">تعديل المصروفات</button> -->
+                <span
+                  nz-icon
+                  nzType="delete"
+                  (click)="handleOpenConfirmDelete(data?._id)"
+                  style="
+                    color: rgb(208, 19, 19);
+                    font-size: 20px;
+                    cursor: pointer;
+                  "
+                  nzTheme="fill"
+                ></span>
+              </div>
+            </td>
+          </tr>
+
+          <!-- </ng-template> -->
+          }
+        </tbody>
+      </nz-table>
+      <!-- <div  class=" mt-8 w-full relative border border-1 border-[#ccc] rounded-lg h-auto p-5 ">
+        <label for="payment" class=" absolute bg-[#fff] w-auto px-2 mx-2 right-1 z-10 top-[-10px]">دفع الاشتراك</label>
+        <form nz-row nzGutter="24" [formGroup]="paymentForm" (ngSubmit)="submit(paymentForm)">
+          <div nz-col nzXs="5">
+            <nz-select formControlName="student" dir="rtl" [nzAllowClear]="true" [nzShowSearch]="true" [nzDropdownStyle]="{'direction':'rtl'}" nzPlaceHolder="اختر اسم الطالب" class=" w-full">
+              @for (item of students_Name; track $index) {
+                <nz-option [nzKey]="$index" [nzValue]="item._id" [nzLabel]="item.name"></nz-option>
+              }
+            </nz-select>
+             @if (pf.student.errors?.['required']&&pf['student'].touched) {
+              <p class=" text-[red] ">هذا الحقل مطلوب</p>
+             }@else {
+              <p></p>
+             }
+          </div>
+          <div nz-col nzXs="3">
+          <label for="payment">قيمة الاشتراك</label>
+          <p class=" text-base font-medium">{{subscriptionVal==null?'يستثني':subscriptionVal}}</p>
+          </div>
+          <div nz-col nzXs="5">
+            <input formControlName="amount"  nz-input type="number" placeholder="ادخل القيمة" class="" />
+            @if (pf.amount.errors?.['required']&&pf['amount'].touched) {
+              <p class=" text-[red] ">هذا الحقل مطلوب</p>
+             }@else {
+              <p></p>
+             }
+          </div>
+          <div nz-col nzXs="5">
+           <button nz-button [nzType]="'default'" class=" !bg-[#0b1825] rounded-md !text-[#fff]" type="submit" [disabled]="subscriptionVal==null" >دفع الاشتراك</button>
+          </div>
+
+        </form>
+      </div> -->
+    </div>
+    <nz-modal
+    [(nzVisible)]="editModal"
+    nzTitle="تعديل المصروفات للطالب"
+    (nzOnCancel)="cancelEditModal()"
+    nzCancelText="الغاء"
+    nzOkText="تعديل"
+    [nzFooter]="editFooter"
+    (nzOnOk)="updatePayment()"
+  >
+    <ng-container *nzModalContent>
+      <div nz-row [nzGutter]="[24,24]">
+        <div nz-col nzXs="24" nzSm="24">
+         <nz-form-label >المبلغ</nz-form-label>
+         <input nz-input  type="number" class=" w-full" placeholder="ادخل المبلغ" formControlName="amount" >
+        </div>
+        <div nz-col nzXs="24" nzSm="24">
+          <nz-form-label >التاريخ</nz-form-label>
+          <nz-date-picker formControlName="date" class="w-full" nzPlaceHolder="ادخل التاريخ"></nz-date-picker>
+        </div>
+      </div>
+    </ng-container>
+  </nz-modal>
+  <ng-template #editFooter>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        direction: ltr !important;
+      "
+    >
+      <button
+        (click)="cancelEditModal()"
+        nz-button
+        nzType="default"
+        style="
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          border-radius: 15px;
+        "
+      >
+        الغاء
+      </button>
+      <button
+        (click)="updatePayment()"
+        nz-button
+        nzType="primary"
+        style="
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          border-radius: 15px;
+        "
+      >
+        تعديل
+      </button>
+    </div>
+  </ng-template>
+
+    <nz-modal
+    [(nzVisible)]="isDeleteModal"
+    nzTitle="حذف المصروفات للطالب"
+    (nzOnCancel)="handleCancelConfirmDelete()"
+    nzCancelText="الغاء"
+    nzOkText="حذف"
+    [nzFooter]="delFooter"
+    (nzOnOk)="handleDelete()"
+  >
+    <ng-container *nzModalContent>
+      <div>
+        <h1 style="font-size: 22px;text-align: end;">هل انت متأكد من حذف هذا المصروف للطالب ؟</h1>
+      </div>
+    </ng-container>
+  </nz-modal>
+  <ng-template #delFooter>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        direction: ltr !important;
+      "
+    >
+      <button
+        (click)="handleCancelConfirmDelete()"
+        nz-button
+        nzType="default"
+        style="
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          border-radius: 15px;
+        "
+      >
+        الغاء
+      </button>
+      <button
+        (click)="handleDelete()"
+        nz-button
+        nzType="primary"
+        nzDanger
+        style="
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          border-radius: 15px;
+        "
+      >
+        حذف
+      </button>
+    </div>
+  </ng-template>
+</div>
+  </div>

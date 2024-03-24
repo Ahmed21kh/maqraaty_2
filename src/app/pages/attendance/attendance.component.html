@@ -1,0 +1,472 @@
+<div class="attendance_div">
+  <div>
+    <app-breadcrumb></app-breadcrumb>
+    <div class="attendance_table" >
+      <div style="margin-block: 20px;display:flex;align-items: center;justify-content: space-between;gap: 20px;">
+        <nz-date-picker [nzSize]="'large'" [(ngModel)]="dateFilter" class=" w-1/5 rounded-xl" (ngModelChange)="onChange($event)"></nz-date-picker>
+
+       </div>
+      <ng-template #pagination>
+        <nz-pagination [nzPageIndex]="pageNumber" [nzPageSize]="pageSize" [nzTotal]="total" (nzPageIndexChange)="changePagination($event)"></nz-pagination>
+      </ng-template>
+      <ng-template #totalData>
+        <!-- <div style="border: 1px solid #000;width: 50px;height: 50px;position: absolute;">
+          {{total}}
+        </div> -->
+      </ng-template>
+      <nz-table
+        [nzScroll]="{ x: '1200px', y: '340px' }"
+        dir="rtl"
+        [nzPageSize]="pageSize"
+        #filterTable
+        [nzTotal]="total"
+        [nzShowTotal]="totalData"
+        nzPaginationPosition="bottom"
+        [nzFrontPagination]="false"
+        [nzShowPagination]="false"
+        [nzItemRender]="pagination"
+        [nzLoading]="loadingSearch||loadingData"
+        (nzPageIndexChange)="changePagination($event)"
+        [nzData]="listOfData"
+        nzTableLayout="fixed"
+        [nzFooter]="pagination"
+      >
+        <thead>
+          <tr>
+            @for (column of listOfColumns; track $index) {
+            <!-- <ng-template ngFor let-column [ngForOf]="listOfColumns"> -->
+            <th
+              style="text-align: center"
+              [nzSortOrder]="column.sortOrder"
+              [nzSortFn]="column.sortFn"
+              [nzSortDirections]="column.sortDirections"
+              [nzFilterMultiple]="column.filterMultiple"
+              [nzFilters]="column.listOfFilter"
+              [nzFilterFn]="column.filterFn"
+            >
+              {{ column.name }}
+            </th>
+
+            <!-- </ng-template> -->
+            }
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (data of filterTable.data; track $index) {
+          <!-- <ng-template ngFor let-data [ngForOf]="filterTable.data"> -->
+          <tr>
+            <td>{{ data.studentDetails.code }}</td>
+            <td class=" cursor-pointer" (click)="openShowStudent(data.studentDetails)">{{ data.studentDetails.name }}</td>
+            <td>{{ dateAttendance | date:'dd-MM-YYYY' }}</td>
+            <td>
+              @if (data.studentDetails.image !== '') {
+
+              <img
+                loading="lazy"
+                width="64"
+                height="64"
+                style="border-radius: 50%; margin: auto"
+                [src]="url + '' + data.studentDetails.image"
+                alt="img"
+              />
+              }@else {
+              <img
+                loading="lazy"
+                width="64"
+                height="64"
+                style="border-radius: 50%; margin: auto"
+                [src]="'assets/user.png'"
+                alt="img"
+              />
+              }
+            </td>
+            <td >
+              <div class=" w-full flex justify-center items-center">
+                <nz-radio-group class=" flex gap-x-5"  (ngModelChange)="changeStatusOfAttendance($event,data)" [(ngModel)]="handleCompareDate(data.date)&&data.status">
+                  <label nz-radio nzValue="حاضر">حاضر</label>
+                  <label nz-radio nzValue="غائب">غائب</label>
+                </nz-radio-group>
+              </div>
+            </td>
+            <td>
+              <div nz-tooltip="تفاصيل الحضور" class=" cursor-pointer" (click)="showEditModal(data._id,data.student,data.attend_days_month)">
+                <span nz-icon nzType="info-circle" nzTheme="outline" class=" cursor-pointer"></span>
+              </div>
+            </td>
+            <!-- <td>
+              <div style="display: flex; justify-content: space-around">
+                <span
+                  nz-icon
+                  nzType="delete"
+                  (click)="handleOpenConfirmDelete(data?._id)"
+                  style="
+                    color: rgb(208, 19, 19);
+                    font-size: 20px;
+                    cursor: pointer;
+                  "
+                  nzTheme="fill"
+                ></span>
+              </div>
+            </td> -->
+          </tr>
+
+          <!-- </ng-template> -->
+          }
+        </tbody>
+      </nz-table>
+    </div>
+    <nz-modal
+    [(nzVisible)]="editModal"
+    nzTitle="تفاصيل الحضور للطالب"
+    (nzOnCancel)="cancelEditModal()"
+    nzCancelText="اغلاق"
+    nzOkText=""
+    [nzFooter]="editFooter"
+    nzWidth="800px"
+  >
+    <ng-container *nzModalContent>
+      <div dir="rtl" class=" my-3 flex justify-start items-center">
+        <nz-date-picker [nzSize]="'large'"  [nzInputReadOnly]="true" [nzAllowClear]="false" [(ngModel)]="attendanceDate" class=" w-1/5 rounded-xl" (ngModelChange)="changeAttendanceDate($event)"></nz-date-picker>
+      </div>
+      <nz-table
+      [nzScroll]="{ x: '200px', y: '340px' }"
+      dir="rtl"
+      #filterTable
+      [nzFrontPagination]="false"
+      [nzData]="dataOfDatesArr()"
+      nzTableLayout="fixed"
+    >
+      <thead>
+        <tr>
+          <th style="text-align: center">اليوم</th>
+          <th style="text-align: center">التاريخ </th>
+          <th style="text-align: center">حالة الحضور</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (data of filterTable.data; track $index) {
+        <!-- <ng-template ngFor let-data [ngForOf]="filterTable.data"> -->
+        <tr>
+          <td style="text-align: center">{{ data.day}}</td>
+          <td style="text-align: center">{{ data.date| date:'dd-MM-YYYY' }}</td>
+          <td style="text-align: center">
+           @if(data.status == 'حاضر'){
+
+             <span class=" text-[green]">{{data.status}}</span>
+
+           }@else if(data.status == 'غائب') {
+            <span class=" text-[red]">{{data.status}}</span>
+
+           }@else {
+            <span class=" text-[#000]">{{data.status}}</span>
+
+           }
+            <!-- <div class=" flex justify-center items-center">
+              <nz-radio-group class=" flex gap-x-5" [ariaReadOnly]="true" (ngModelChange)="changeStatus(data.status)"  [(ngModel)]="data.status">
+                <label nz-radio nzValue="حاضر">حاضر</label>
+                <label nz-radio nzValue="غائب">غائب</label>
+              </nz-radio-group>
+            </div> -->
+          </td>
+          <!-- <td>
+            <div style="display: flex; justify-content: space-around">
+
+              <button nz-button [nzType]="'primary'" class=" rounded-lg" (click)="showEditModal(data._id,data.student)">تعديل المصروفات</button>
+              <span
+                nz-icon
+                nzType="delete"
+                (click)="handleOpenConfirmDelete(data?._id)"
+                style="
+                  color: rgb(208, 19, 19);
+                  font-size: 20px;
+                  cursor: pointer;
+                "
+                nzTheme="fill"
+              ></span>
+            </div>
+          </td> -->
+        </tr>
+
+        <!-- </ng-template> -->
+        }
+      </tbody>
+    </nz-table>
+    </ng-container>
+  </nz-modal>
+  <ng-template #editFooter>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        direction: rtl !important;
+        justify-content: space-between;
+      "
+    >
+     <div class="flex items-center gap-2">
+      <span class=" text-base font-semibold text-[#ff000069]">  عدد الغياب :</span>
+      <span class=" text-lg font-medium">{{absence}}</span>
+     </div>
+      <button
+        (click)="cancelEditModal()"
+        nz-button
+        nzType="default"
+        style="
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          border-radius: 15px;
+        "
+      >
+        اغلاق
+      </button>
+    </div>
+  </ng-template>
+
+  <nz-modal
+  dir="rtl"
+  [(nzVisible)]="showStudent"
+  [nzTitle]="'بيانات الطالب'"
+  (nzOnCancel)="closeShowStudent()"
+  [nzFooter]="footer_show"
+  [nzWidth]="'700px'"
+  [nzStyle]="{ 'margin-top': '-38px' }"
+  [nzBodyStyle]="{ 'overflow-y': 'auto', 'max-height': '720px' }"
+>
+  <ng-container *nzModalContent>
+    <div dir="rtl" nz-row [nzGutter]="[24, 20]">
+      <div nz-col nzXs="24" nzMd="8" nzLg="8" nzXl="8">
+        <!-- <nz-form-label
+          >الصورة
+        </nz-form-label> -->
+        @if (student_Data.image !== '') {
+        <img
+          style="display: inline-block; cursor: zoom-in"
+          dir="ltr"
+          nz-image
+          width="150px"
+          height="150px"
+          class="rounded-full"
+          [nzSrc]="url + '' + student_Data.image"
+          alt=""
+        />
+        } @else {
+        <img
+          style="display: inline-block"
+          dir="ltr"
+          nz-image
+          width="150px"
+          height="150px"
+          class="rounded-full"
+          [nzSrc]="'assets/user.png'"
+          alt=""
+        />
+        }
+      </div>
+      <div nz-col nzXs="24" nzMd="16" nzLg="16" nzXl="16">
+        <div nz-row [nzGutter]="[24, 10]">
+          <div nz-col nzXs="24" nzMd="12" nzLg="12" nzXl="12">
+            <nz-form-label class="!pr-0 !py-[1px] !text-gray-400"
+              >الاسم
+            </nz-form-label>
+            <p class="text-xl font-medium">{{ student_Data.name }}</p>
+          </div>
+          <div nz-col nzXs="24" nzMd="12" nzLg="12" nzXl="12">
+            <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+              >السن
+            </nz-form-label>
+            <p class="text-xl font-medium">{{ student_Data.age }}</p>
+          </div>
+          <div nz-col nzXs="24" nzMd="12" nzLg="12" nzXl="12">
+            <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+              >السنة الدراسية
+            </nz-form-label>
+            <p class="text-xl font-medium">{{ student_Data.study_year }}</p>
+          </div>
+          <div nz-col nzXs="24" nzMd="12" nzLg="8" nzXl="8">
+            <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+              >رقم موبايل الطالب
+            </nz-form-label>
+            <p class="text-xl font-medium">{{ student_Data.phone_1 }}</p>
+          </div>
+        </div>
+      </div>
+
+      <nz-divider></nz-divider>
+
+      <div nz-col nzXs="24" nzMd="12" nzLg="8" nzXl="8">
+        <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+          >رقم موبايل الام</nz-form-label
+        >
+        <p class="text-xl font-medium">{{ student_Data.phone_2 }}</p>
+      </div>
+      <div nz-col nzXs="24" nzMd="12" nzLg="8" nzXl="8">
+        <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+          >رقم موبايل الاب</nz-form-label
+        >
+        <p class="text-xl font-medium">{{ student_Data.phone_3 }}</p>
+      </div>
+      <div nz-col nzXs="24" nzMd="12" nzLg="8" nzXl="8">
+        <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+          >التليفون الارضي
+        </nz-form-label>
+        <p class="text-xl font-medium">{{ student_Data.landline }}</p>
+      </div>
+
+      <nz-divider></nz-divider>
+
+      <div nz-col nzXs="24" nzMd="12" nzLg="8" nzXl="8">
+        <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+          >تاريخ التسجيل بالمقرأة
+        </nz-form-label>
+        <p class="text-xl font-medium">
+          {{ student_Data.date | date : "dd-MM-YYYY" }}
+        </p>
+      </div>
+      <div nz-col nzXs="24" nzMd="12" nzLg="12" nzXl="12">
+        <div nz-row [nzGutter]="[20,20]">
+          <div nz-col nzXs="24" nzMd="12" [nzLg]="student_Data.is_payment == 'لا'?16:24" [nzXl]="student_Data.is_payment == 'لا'?16:24">
+
+            <nz-form-label class="whitespace-pre-wrap !pr-0 !py-1 !text-gray-400"
+              >هل الطالب يستثنى من دفع المصروفات ؟
+            </nz-form-label>
+            <span class="text-xl font-medium">{{ student_Data.is_payment }}</span>
+          </div>
+          @if (student_Data.is_payment == 'لا') {
+            <div nz-col nzXs="24" nzMd="12" nzLg="8" nzXl="8">
+              <nz-form-label class="whitespace-pre-wrap !pr-0 !py-1 !text-gray-400"
+              >المصروفات
+            </nz-form-label>
+            <span class="text-xl font-medium">{{ student_Data.amount }} {{'ج'}}</span>
+            </div>
+
+          }
+        </div>
+      </div>
+      <div nz-col nzXs="24" nzMd="12" nzLg="12" nzXl="12">
+        <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+          >هل الطالب ازهري ؟
+        </nz-form-label>
+        <span class="text-xl font-medium">{{ student_Data.is_Azhar }}</span>
+      </div>
+      <div nz-col nzXs="24" nzMd="12" nzLg="12" nzXl="12">
+        <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+          >هل للطالب اقارب ؟
+        </nz-form-label>
+        <span class="text-xl font-medium">{{
+          student_Data.has_relative
+        }}</span>
+      </div>
+      @if (student_Data.has_relative == 'نعم'){
+      <div nz-col nzXs="24" nzMd="12" nzLg="8" nzXl="8">
+        <nz-form-label class="!pr-0 !py-1 !text-gray-400">
+          اسماء الاقارب
+        </nz-form-label>
+        <div class="flex flex-col gap-1 items-start">
+          @for (item of student_Data.relative; track $index) {
+          <span [id]="$index" class="text-xl font-medium"
+            >- {{ getNameOfOneStudent(item) }}</span
+          >
+          }
+        </div>
+      </div>
+
+      }
+      <nz-divider></nz-divider>
+
+      <div nz-col nzXs="24" nzMd="12" nzLg="12" nzXl="12">
+        <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+          >العنوان
+        </nz-form-label>
+        <p class="text-xl font-medium">{{ student_Data.address }}</p>
+      </div>
+      <div nz-col nzXs="24" nzMd="12" nzLg="12" nzXl="12">
+        <nz-form-label class="!pr-0 !py-1 !text-gray-400"
+          >الملاحظات</nz-form-label
+        >
+        <p class="text-xl font-medium">{{ student_Data.notes }}</p>
+      </div>
+    </div>
+  </ng-container>
+</nz-modal>
+<ng-template #footer_show>
+  <div
+    style="
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      direction: ltr !important;
+    "
+  >
+    <button
+      (click)="closeShowStudent()"
+      nz-button
+      nzType="default"
+      style="
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border-radius: 15px;
+      "
+    >
+      اغلاق
+    </button>
+  </div>
+</ng-template>
+
+    <nz-modal
+    [(nzVisible)]="isDeleteModal"
+    nzTitle="حذف الحضور للطالب"
+    (nzOnCancel)="handleCancelConfirmDelete()"
+    nzCancelText="الغاء"
+    nzOkText="حذف"
+    [nzFooter]="delFooter"
+    (nzOnOk)="handleDelete()"
+  >
+    <ng-container *nzModalContent>
+      <div>
+        <h1 style="font-size: 22px;text-align: end;">هل انت متأكد من حذف هذا الحضور للطالب ؟</h1>
+      </div>
+    </ng-container>
+  </nz-modal>
+  <ng-template #delFooter>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        direction: ltr !important;
+      "
+    >
+      <button
+        (click)="handleCancelConfirmDelete()"
+        nz-button
+        nzType="default"
+        style="
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          border-radius: 15px;
+        "
+      >
+        الغاء
+      </button>
+      <button
+        nz-button
+        nzType="primary"
+        nzDanger
+        style="
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          border-radius: 15px;
+        "
+        (click)="handleDelete()"
+      >
+        حذف
+      </button>
+    </div>
+  </ng-template>
+</div>
+  </div>
