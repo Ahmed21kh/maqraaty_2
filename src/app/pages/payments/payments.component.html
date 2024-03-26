@@ -139,7 +139,7 @@
              }
           </div>
           <div nz-col nzXs="5">
-           <button [nzSize]="'large'" nz-button [nzType]="'default'" class=" !bg-[#0b1825] rounded-md !text-[#fff]" type="submit" [disabled]="subscriptionVal==null || compareDate(dateFilter)" >دفع الاشتراك</button>
+           <button [nzLoading]="payLoading" [nzSize]="'large'" nz-button [nzType]="'default'" class=" !bg-[#0b1825] rounded-md !text-[#fff]" type="submit" [disabled]="subscriptionVal==null || compareDate(dateFilter)" >دفع الاشتراك</button>
           </div>
 
         </form>

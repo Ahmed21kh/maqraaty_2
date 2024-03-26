@@ -184,6 +184,7 @@ export class PaymentsComponent {
   subscriptionVal:number = 0
   defaultDate:any= new Date().toISOString().split("T")[0]
   totalAmount:number = 0
+  payLoading:boolean=false;
   constructor(
     private fb: FormBuilder,
     private msg: NzMessageService,
@@ -348,12 +349,14 @@ export class PaymentsComponent {
     console.log(data.controls?.['amount'].valid);
     if (data.valid&&data.controls?.['amount'].valid) {
     console.log(data.value);
+    this.payLoading = true;
     const { date , amount ,student} = data.value
     this.appService.addPayment({date,amount},student).subscribe({next:(data)=>{
       console.log(data);
       this.msg.success("تم الدفع بنجاح")
       this.getDataOfPayments()
       this.resetData()
+      this.payLoading = false;
       },
     error:(errr)=>{
       this.msg.error(errr.message);
