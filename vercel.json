@@ -1,8 +1,16 @@
 {
+  "version": 2,
+  "public": true,
+  "name": "maqraaty",
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/"
+      "destination": "/api"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "dist/maqraaty_2/**"
+    }
+  }
 }
